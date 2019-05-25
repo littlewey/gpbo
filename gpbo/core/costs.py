@@ -1,5 +1,3 @@
-from __future__ import print_function
-xrange=range
 import scipy as sp
 from scipy import linalg as spl
 import logging
@@ -10,6 +8,13 @@ import DIRECT
 from scipy.optimize import minimize as spm
 import gpbo
 logger = logging.getLogger(__name__)
+
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named to range
+    xrange = range
 
 def cf42(x,**ev):
     return 42.
@@ -245,19 +250,19 @@ def predictive1d(x,c,t,ofs,C):
 
 
         xaxis = sp.linspace(ofs-0.5,len(t)+2)
-        yaxis = map(t_est, xaxis-ofs-n)
+        yaxis = list(map(t_est, xaxis-ofs-n))
         a[0].plot(xaxis,yaxis,'r')
 
         xaxis=sp.linspace(0,1,50)
         caxis=[cfbase(0.,**{'xa':i}) for i in xaxis]
-        yaxis = map(npred,caxis)
+        yaxis = list(map(npred,caxis))
         a[1].plot(xaxis,[i[0] for i in yaxis],'r')
         a[1].twinx().plot(xaxis, [i[1] for i in yaxis], 'b')
 
 
         xaxis=sp.linspace(0,1,100)
-        cbase = map(lambda x:cfbase(None,**{'xa':x}),xaxis)
-        cadj = map(lambda x:cfout(None,**{'xa':x}),xaxis)
+        cbase = [cfbase(None,**{'xa':x}) for x in xaxis]
+        cadj = [cfout(None,**{'xa':x}) for x in xaxis]
         a[2].plot(xaxis,cbase,'b')
         a[2].plot(xaxis,cadj,'g')
         f.savefig(os.path.join(gpbo.core.debugoutput['path'], 'taq' + time.strftime('%d_%m_%y_%H:%M:%S') + '.png'))

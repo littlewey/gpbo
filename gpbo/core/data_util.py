@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import cPickle
+import pickle
 from gzip import GzipFile as gfile
 import logging
 import os
@@ -37,7 +37,7 @@ def load_file(filename, file_format, use_percentage):
     if file_format == "gfile":
         logger.info("Loading file: %s", filename)
         fh = gfile(filename, "rb")
-        data = cPickle.load(fh)
+        data = pickle.load(fh)
         if use_percentage >= 100.:
             pass
         else:
@@ -50,7 +50,7 @@ def load_file(filename, file_format, use_percentage):
     elif file_format == "pickle":
         logger.info("Loading file: %s", filename)
         fh = open(filename, "r")
-        data = cPickle.load(fh)
+        data = pickle.load(fh)
         if use_percentage >= 100.:
             pass
         else:

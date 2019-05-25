@@ -1,8 +1,6 @@
 # To change this license header, choose License Headers in Project Properties.
 # To change this template file, choose Tools | Templates
 # and open the template in the editor.
-from __future__ import print_function
-xrange=range
 import scipy as sp
 from scipy import linalg as spl
 import logging
@@ -12,6 +10,12 @@ from scipy.optimize import minimize as spm
 import gpbo
 logger = logging.getLogger(__name__)
 
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named to range
+    xrange = range
 
 def trivialojf(x,**ev):
     return sum([(xi-0.1*i)**2 for i,xi in enumerate(x)]),1.,dict()
@@ -20,7 +24,7 @@ trivialymin = 0.
 
 braninymin = 0.39788735772973816
 def shiftbraninojf(x,**ev):
-    if 'd' in ev.keys():
+    if 'd' in list(ev.keys()):
         assert(ev['d']==[sp.NaN])
     u = x[0]*7.5 + 2.5
     v = x[1]*7.5 + 2.5
@@ -45,9 +49,9 @@ def shifthart3(x, **ev):
                          [1091, 8732, 5547],
                          [381.0, 5743, 8828]])
     outer = 0
-    for ii in range(4):
+    for ii in xrange(4):
         inner = 0
-        for jj in range(3):
+        for jj in xrange(3):
             xj = z[jj]
             Aij = A[ii, jj]
             Pij = P[ii, jj]
@@ -64,7 +68,7 @@ def shifthart3D(x,**ev):
     f,c,d = shifthart3(x,**ev)
     h=1e-6
     F = [f]
-    for i in range(3):
+    for i in xrange(3):
         zp = sp.copy(x)
         zp[i]+=h
         zn = sp.copy(x)
@@ -89,9 +93,9 @@ def shifthart4(x, **ev):
                            [2348., 1451., 3522., 2883., 3047., 6650.],
                            [4047., 8828., 8732., 5743., 1091., 381.]])
     outer = 0
-    for ii in range(4):
+    for ii in xrange(4):
         inner = 0
-        for jj in range(4):
+        for jj in xrange(4):
             xj = z[jj]
             Aij = A[ii, jj]
             Pij = P[ii, jj]
@@ -117,9 +121,9 @@ def shifthart6(x, **ev):
                            [2348., 1451., 3522., 2883., 3047., 6650.],
                            [4047., 8828., 8732., 5743., 1091., 381.]])
     outer = 0
-    for ii in range(4):
+    for ii in xrange(4):
         inner = 0
-        for jj in range(6):
+        for jj in xrange(6):
             xj = z[jj]
             Aij = A[ii, jj]
             Pij = P[ii, jj]
@@ -133,9 +137,9 @@ def shifthart6(x, **ev):
     return f-hart6min, 1., dict()
 
 def rosenojf(x,**ev):
-    if 'd' in ev.keys():
+    if 'd' in list(ev.keys()):
         assert(ev['d']==[sp.NaN])
-    if 's' in ev.keys():
+    if 's' in list(ev.keys()):
         if ev['s']>0:
             noise = sp.random.normal(scale=sp.sqrt(ev['s']))
         else:
@@ -163,9 +167,9 @@ def shiftshekel5(x,**ev):
                   [4., 1., 8., 6., 7., 9., 3., 1., 2., 3.6]])
 
     acco= 0
-    for i in range(5):
+    for i in xrange(5):
         acci = 0
-        for j in range(4):
+        for j in xrange(4):
             acci += (z[j]-C[j,i])**2
         acco-= 1./(acci+b[i])
     f = acco+10.153195850979039072035
@@ -182,9 +186,9 @@ def shiftshekel7(x,**ev):
                   [4., 1., 8., 6., 7., 9., 3., 1., 2., 3.6]])
 
     acco= 0
-    for i in range(7):
+    for i in xrange(7):
         acci = 0
-        for j in range(4):
+        for j in xrange(4):
             acci += (z[j]-C[j,i])**2
         acco-= 1./(acci+b[i])
     f = acco+10.4028188369303046476802
@@ -201,9 +205,9 @@ def shiftshekel10(x,**ev):
                   [4., 1., 8., 6., 7., 9., 3., 1., 2., 3.6]])
 
     acco= 0
-    for i in range(10):
+    for i in xrange(10):
         acci = 0
-        for j in range(4):
+        for j in xrange(4):
             acci += (z[j]-C[j,i])**2
         acco-= 1./(acci+b[i])
     f = acco+10.5362837262196020977228
@@ -281,9 +285,9 @@ def genmat52ojf(d,lb,ub,A=1.,ls=0.3,fixs=-1,ki=GPdc.MAT52):
     xmin,ymin,ierror = gpbo.core.optutils.twopartopt(wrap,lb,ub,dpara,lpara)
 
     print('init {} {}'.format(xmin, ymin))
-    for i in range(250):
+    for i in xrange(250):
         p = sp.random.normal(size=d)*1e-2
-        res = spm( wrap,xmin+p,method='L-BFGS-B',bounds=tuple([(lb[j],ub[j]) for j in range(d)]),options={'gtol':1e-30})
+        res = spm( wrap,xmin+p,method='L-BFGS-B',bounds=tuple([(lb[j],ub[j]) for j in xrange(d)]),options={'gtol':1e-30})
        # print(res)
         #print(xmin,res.x,wrap(xmin),wrap(res.x)<wrap(xmin))
         if wrap(res.x) < wrap(xmin):
@@ -295,17 +299,17 @@ def genmat52ojf(d,lb,ub,A=1.,ls=0.3,fixs=-1,ki=GPdc.MAT52):
         dx=ev['d']
         s=ev['s']
         if fixs<0:
-            if ev['s']>0 and not 'cheattrue' in ev.keys():
+            if ev['s']>0 and not 'cheattrue' in list(ev.keys()):
                 noise = sp.random.normal(scale=sp.sqrt(ev['s']))
             else:
                 noise=0
         else:
-            if not 'cheattrue' in ev.keys():
+            if not 'cheattrue' in list(ev.keys()):
                 noise = sp.random.normal(scale=sp.sqrt(fixs))
             else:
                 noise=0.
         y= wrap(x)+noise#G.infer_m(sp.array(x),[dx])[0,0]+noise
-        if not 'silent' in ev.keys():
+        if not 'silent' in list(ev.keys()):
             print('ojf at {} {} returned {} noise {}'.format([i for i in x],ev,y,noise))
         return y-ymin,1.,dict()
     logger.info('generated function xmin {} ymin {}(shifted to 0.) opt:{}'.format(xmin, ymin, ierror))

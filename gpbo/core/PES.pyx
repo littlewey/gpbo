@@ -89,7 +89,7 @@ def addmins(G,X,Y,S,D,xmin,mode=OFFHESSZERO, GRADNOISE=1e-9,EP_SOFTNESS=1e-9,int
             Sg[i,0]=1e9
 
     #offdiag hessian elements
-    nh = ((dim-1)*dim)/2
+    nh = ((dim - 1) * dim) // 2
     Xh = sp.vstack([sp.empty([0,dim])]+[xmin]*nh)
     class MJMError(Exception):
         pass
@@ -163,7 +163,7 @@ def addmins_inplane(G,X,Y,S,D,xmin,axis,value,mode=OFFHESSZERO, GRADNOISE=1e-9,E
     #    for i in dropdims:
     #        Sg[i,0]=1e9
     #offdiag hessian elements
-    nh = ((dim-1)*(dim-2))/2
+    nh = ((dim - 1) * (dim - 2)) // 2
     Xh = sp.vstack([sp.empty([0,dim])]+[xmin]*nh)
     Dh=[]
     for i in range(dim):

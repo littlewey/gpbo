@@ -21,11 +21,11 @@ def f(x, **ev):
     #noise
     n = sp.random.normal() * sp.sqrt(s)
     #we want to check the noiseless value when evaluating performance
-    if 'cheattrue' in ev.keys():
+    if 'cheattrue' in list(ev.keys()):
         if ev['cheattrue']:
             b = 0
             n = 0
-    print('f inputs x:{} ev:{} outputs y:{} (b:{} n:{}) c:{}'.format(x, ev, y + n + b, b, n, c))
+    print(('f inputs x:{} ev:{} outputs y:{} (b:{} n:{}) c:{}'.format(x, ev, y + n + b, b, n, c)))
     return y + b + n, c, dict()
 
 #arguments to generate default config are objective function, dimensionality, number of steps, noise variance, result directory and result filename

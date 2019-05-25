@@ -31,14 +31,14 @@ class Stationary(gpf.kernels.Kern):
     def __init__(self, input_dim, **kwargs):
         gpf.kernels.Kern.__init__(self, 2 * input_dim, **kwargs)
         self.latent_input_dim = input_dim
-        if not 'lengthscales' in kwargs.keys():
+        if not 'lengthscales' in list(kwargs.keys()):
             lengthscales = np.ones(input_dim, np_float_type)
         else:
             # accepts float or array:
             lengthscales = kwargs['lengthscales'] * np.ones(input_dim, np_float_type)
         self.lengthscales = Param(lengthscales, transforms.positive)
 
-        if not 'variance' in kwargs.keys():
+        if not 'variance' in list(kwargs.keys()):
             variance = 1.
         self.variance = Param(variance, transforms.positive)
     def Rsplit(self, X, Y):

@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 import scipy as sp
 from scipy import linalg as spl
 from scipy.optimize import minimize
@@ -28,6 +28,13 @@ import os
 import time
 from copy import deepcopy
 
+
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named to range
+    xrange = range
 
 def always0(optstate,persist,**para):
     return 0,None,dict()
@@ -108,7 +115,7 @@ def globallocalregret(optstate,persist,**para):
     logger.info('post min at {}(true) {}(rotated) is {}'.format(xminr,xmin,ymin))
 
     dropdims=[]
-    for i in range(d):
+    for i in xrange(d):
         if xminr[i]>0.995*(ub[i]-lb[i])+lb[i] or xminr[i]<lb[i]+(1.-0.995)*(ub[i]-lb[i]):
             dropdims.append(i)
             if not sp.allclose(sp.eye(d),persist['R']):
@@ -323,12 +330,12 @@ def globallocalregret(optstate,persist,**para):
 
         pltcdf(Yin,Cin,ax[2,0],'b')
         rin = sp.linspace(Yin[0],Yin[-1],150)
-        ax[2,0].plot(rin, map(lambda x:sp.stats.norm.cdf(x,*normin),rin),'k')
+        ax[2,0].plot(rin, [sp.stats.norm.cdf(x,*normin) for x in rin],'k')
 
 
         pltcdf(Yat,Cat,ax[2,0],'g')
         rat = sp.linspace(Yat[0],Yat[-1],150)
-        ax[2,0].plot(rat, map(lambda x:sp.stats.norm.cdf(x,*normat),rat),'k')
+        ax[2,0].plot(rat, [sp.stats.norm.cdf(x,*normat) for x in rat],'k')
         ax[2,0].set_yscale('logit')
 
 
@@ -405,7 +412,7 @@ def globallocalregret(optstate,persist,**para):
         del (fig)
 
     #if a cheat objective as available see how we would do on starting a local opt now
-    if 'cheatf' in para.keys():
+    if 'cheatf' in list(para.keys()):
         try:
             C = sp.linalg.cholesky(H)
         except:

@@ -51,9 +51,9 @@ def digitfn():
         # Create a classifier: a support vector classifier
         classifier = svm.SVC(gamma=g, coef0=c,kernel='sigmoid')
         # We learn the digits on the first half of the digits
-        classifier.fit(data[:n_samples / 2], digits.target[:n_samples / 2])
+        classifier.fit(data[:n_samples // 2], digits.target[:n_samples // 2])
         # Now predict the value of the digit on the second half:
-        r = classifier.score(data[n_samples / 2:],digits.target[n_samples / 2:])
+        r = classifier.score(data[n_samples // 2:],digits.target[n_samples // 2:])
         return [1-r,1.]
     return digitojf
 
@@ -418,14 +418,14 @@ def gpGH(G,x):
     """
     d = G.D
 
-    divs = [[]] * ((d * (d + 1) / 2)+d)
+    divs = [[]] * ((d * (d + 1) // 2) + d)
     k = d
     for i in xrange(d):
         divs[i]=[i]
         for j in xrange(i + 1):
             divs[k] = [i, j]
             k += 1
-    X = sp.vstack([x] * ((d*(d + 1)/2)+d) )
+    X = sp.vstack([x] * ((d * (d + 1) //2) + d))
 
     M,varM = G.infer_full_post(X,divs)
     G = M[:,:d]
@@ -452,7 +452,7 @@ def gpYGH(G,x):
     """
     d = G.D
 
-    divs = [[]] * ((d * (d + 1) / 2)+d+1)
+    divs = [[]] * ((d * (d + 1) // 2) + d + 1)
     k = d
     divs[0]=[np.NaN]
     for i in xrange(d):
@@ -460,7 +460,7 @@ def gpYGH(G,x):
         for j in xrange(i + 1):
             divs[k+1] = [i, j]
             k += 1
-    X = sp.vstack([x] * ((d*(d + 1)/2)+d+1) )
+    X = sp.vstack([x] * ((d * (d + 1) // 2) + d + 1) )
     L,varL = G.infer_full_post(X,divs)
     y = L[0,0]
     vary = varL[0,0]

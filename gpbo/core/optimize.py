@@ -1,8 +1,6 @@
 # To change this license header, choose License Headers in Project Properties.
 # To change this template file, choose Tools | Templates
 # and open the template in the editor.
-from __future__ import print_function
-xrange=range
 import pickle
 import scipy as sp
 import numpy as np
@@ -15,6 +13,15 @@ import gpbo
 import re
 import traceback
 logger = logging.getLogger(__name__)
+
+
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named to range
+    xrange = range
+
 
 class optstate:
     def __init__(self):
@@ -97,7 +104,7 @@ class optimizer:
         #print( self.aqpara)
         self.stoppara['t0']=time.clock()
         lf = open(os.path.join(self.dirpath,self.name),'w')
-        lf.write(''.join(['n, ']+['x'+str(i)+', ' for i in xrange(self.dx)]+[i+', ' for i in self.aqpara[0]['ev'].keys()]+['y, c, ']+['rx'+str(i)+', ' for i in xrange(self.dx)]+['truey at xrecc, taq, tev, trc, realtime, condition, aqauxdata'])+'\n')
+        lf.write(''.join(['n, ']+['x'+str(i)+', ' for i in xrange(self.dx)]+[i+', ' for i in list(self.aqpara[0]['ev'].keys())]+['y, c, ']+['rx'+str(i)+', ' for i in xrange(self.dx)]+['truey at xrecc, taq, tev, trc, realtime, condition, aqauxdata'])+'\n')
 #        self.state = optstate()
         stepn=self.state.n
         checky=sp.NaN
@@ -126,14 +133,14 @@ class optimizer:
                 t2 = time.clock()
                 logger.info("EV returned {} : {}     evaltime: {}".format(F,c,t2-t1))
                 y = F[0]
-                for k in range(len(F)-1):
+                for k in xrange(len(F)-1):
                     ev_ = copy.copy(ev)
                     ev_['d'] = [k]
                     df = F[k+1]
                     self.state.update(x,ev_,df,c,t1-t0)
-                    taildata0 = ','.join([str(k)+' '+sanitize(str(aqaux[k])) for k in aqaux.keys()])
-                    taildata1 = ','.join([str(k)+' '+sanitize(str(aqaux[k])) for k in chooseaux.keys()])
-                    logstr = ''.join([str(stepn)+', ']+[str(xi)+', ' for xi in x]+[str(evi[1])+', ' for evi in ev_.items()]+[str(df)+', ']+[str(c)+', ']+[str(ri)+', ' for ri in rxlast]+[str(checky)+',']+[str(i)+', ' for i in [0.,0.,0.]]+[time.strftime('%H:%M:%S  %d-%m-%y')])+',{},'.format(self.state.conditionV)+taildata0+taildata1+'\n'
+                    taildata0 = ','.join([str(k)+' '+sanitize(str(aqaux[k])) for k in list(aqaux.keys())])
+                    taildata1 = ','.join([str(k)+' '+sanitize(str(aqaux[k])) for k in list(chooseaux.keys())])
+                    logstr = ''.join([str(stepn)+', ']+[str(xi)+', ' for xi in x]+[str(evi[1])+', ' for evi in list(ev_.items())]+[str(df)+', ']+[str(c)+', ']+[str(ri)+', ' for ri in rxlast]+[str(checky)+',']+[str(i)+', ' for i in [0.,0.,0.]]+[time.strftime('%H:%M:%S  %d-%m-%y')])+',{},'.format(self.state.conditionV)+taildata0+taildata1+'\n'
                     lf.write(logstr)
 
             self.state.update(x,ev,y,c,t1-t0)
@@ -163,9 +170,9 @@ class optimizer:
             logger.info("RC returned {}     recctime: {}\n".format(rx,t3-t2))
             aqaux['host'] = os.uname()[1]
 
-            taildata0 = ','.join([str(k)+' '+sanitize(str(aqaux[k])) for k in aqaux.keys()])
-            taildata1 = ','.join([str(k)+' '+sanitize(str(chooseaux[k])) for k in chooseaux.keys()])
-            logstr = ''.join([str(stepn)+', ']+[str(xi)+', ' for xi in x]+[str(evi[1])+', ' for evi in ev.items()]+[str(y)+', ']+[str(c)+', ']+[str(ri)+', ' for ri in rx]+[str(checky)+',']+[str(i)+', ' for i in [t1-t0,t2-t1,t3-t2]]+[time.strftime('%H:%M:%S  %d-%m-%y')])+',{},'.format(self.state.conditionV)+taildata0 + taildata1+'\n'
+            taildata0 = ','.join([str(k)+' '+sanitize(str(aqaux[k])) for k in list(aqaux.keys())])
+            taildata1 = ','.join([str(k)+' '+sanitize(str(chooseaux[k])) for k in list(chooseaux.keys())])
+            logstr = ''.join([str(stepn)+', ']+[str(xi)+', ' for xi in x]+[str(evi[1])+', ' for evi in list(ev.items())]+[str(y)+', ']+[str(c)+', ']+[str(ri)+', ' for ri in rx]+[str(checky)+',']+[str(i)+', ' for i in [t1-t0,t2-t1,t3-t2]]+[time.strftime('%H:%M:%S  %d-%m-%y')])+',{},'.format(self.state.conditionV)+taildata0 + taildata1+'\n'
             lf.write(logstr)
             lf.flush()
             if gpbo.core.debugoutput['logstate']:
@@ -293,7 +300,7 @@ def search(optconfig,initdata=False):
     if hasattr(optconfig,'multimode'):
         if optconfig.multimode:
             multi=True
-    if not 'batchgrad' in optconfig.ojfchar.keys():
+    if not 'batchgrad' in list(optconfig.ojfchar.keys()):
         optconfig.ojfchar['batchgrad'] = False
     if not multi:
         O = optimizer(optconfig.path, optconfig.fname, [optconfig.aqpara], [optconfig.aqfn], optconfig.stoppara,
@@ -314,7 +321,7 @@ def readoptdata(fname,includetaq=False):
     #    for line in f:
     #        df = pd.concat([df, pd.DataFrame([tuple(line.strip().split(','))])], ignore_index=True)
     #print(df.head())
-    names = (open(fname).readline().strip('\n')+''.join([',q{}'.format(i) for i in range(18)])).replace(' ','')
+    names = (open(fname).readline().strip('\n')+''.join([',q{}'.format(i) for i in xrange(18)])).replace(' ','')
     df = pd.read_csv(fname,names=names.split(','),skiprows=1)
     #print(df2.head())
     #print(df.keys())
@@ -330,7 +337,7 @@ def readoptdata(fname,includetaq=False):
     #print(df.head())
     l = len(df['c'])
     df['cacc'] = pd.Series(sp.empty(l), index=df.index)
-    df['index'] = pd.Series(range(l), index=df.index)
+    df['index'] = pd.Series(list(range(l)), index=df.index)
     df['accE'] = pd.Series(sp.empty(l), index=df.index)
     df['accEA'] = pd.Series(sp.empty(l), index=df.index)
     for c in df.columns:

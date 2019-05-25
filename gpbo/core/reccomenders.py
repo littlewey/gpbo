@@ -1,8 +1,6 @@
 # To change this license header, choose License Headers in Project Properties.
 # To change this template file, choose Tools | Templates
 # and open the template in the editor.
-from __future__ import print_function
-xrange=range
 import scipy as sp
 import os
 import sys
@@ -21,6 +19,13 @@ try:
 except ImportError:
     plots=False
     plt=None
+
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named to range
+    xrange = range
 
 from gpbo.core import GPdc
 
@@ -201,7 +206,7 @@ def gphinasargminrecc(optstate, persist, **para):
         return a[0, 0]
     best=sp.Inf
     incumbent = None
-    for i in range(len(optstate.x)):
+    for i in xrange(len(optstate.x)):
         thisone = wrap(sp.array(optstate.x[i]))
         if thisone<best:
             best=thisone

@@ -3,8 +3,6 @@
 #GPcore takes a single hyperparameter value or a set. With a set the infer_ methods produce individual inferences while infer_post methods return the posterior
 #cython: profile=True
 #
-from __future__ import print_function
-xrange=range
 __author__ = "mark"
 __date__ = "$22-Nov-2015 21:27:19$"
 
@@ -16,6 +14,13 @@ from scipy.stats import norm as norms
 from numpy import log10, log, isnan, exp
 from gpbo.core import flowkern
 import GPflow as gpf
+
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named to xrange
+    xrange = range
 
 class flow_Error(Exception):
     pass
@@ -56,11 +61,11 @@ class GPcore:
         else:
             self.size=len(kf)
             self.d = kf[0].dim
-        x = np.hstack([X,np.array([[0 if isnan(x[0]) else (sum([1. if i==j else 0 for i in x ])) for x in D] for j in range(self.d)]).T])
+        x = np.hstack([X,np.array([[0 if isnan(x[0]) else (sum([1. if i==j else 0 for i in x ])) for x in D] for j in xrange(self.d)]).T])
         X = np.hstack([x,S.reshape(x.shape[0],1)])
-        #self.m = [gpf.gpr.GPR(X,Y,klist[kf[0].Kindex](kf[0].dim)) for i in range(self.size)]
-        self.m = [gpf.gpr.GPR(X,Y,kf[i].K) for i in range(self.size)]
-        for i in range(self.size):
+        #self.m = [gpf.gpr.GPR(X,Y,klist[kf[0].Kindex](kf[0].dim)) for i in xrange(self.size)]
+        self.m = [gpf.gpr.GPR(X,Y,kf[i].K) for i in xrange(self.size)]
+        for i in xrange(self.size):
             if kf[i].hyparray:
                 self.m[i].likelihood.variance.transform = gpf.transforms.Log1pe(lower=0.001*np.min(S))
                 self.m[i].likelihood.variance=0.0011*np.min(S)
@@ -70,14 +75,14 @@ class GPcore:
         return
 
     def printc(self):
-        for i in range(self.size):
+        for i in xrange(self.size):
             print(self.m[i])
         return
 
     def infer_m(self,X, D):
-        x = np.hstack([X,np.array([[0 if isnan(x[0]) else (sum([1. if i==j else 0 for i in x ])) for x in D] for j in range(self.d)]).T])
+        x = np.hstack([X,np.array([[0 if isnan(x[0]) else (sum([1. if i==j else 0 for i in x ])) for x in D] for j in xrange(self.d)]).T])
         m = np.empty([X.shape[0],self.size])
-        for i in range(self.size):
+        for i in xrange(self.size):
             m[:,i:i+1], _ = self.m[i].predict_f(np.hstack([x,np.zeros(shape=x.shape)]))
         return m.T
 
@@ -88,11 +93,11 @@ class GPcore:
         return sp.mean(R,axis=0).reshape([1,ns])
 
     def infer_full(self,X,D):
-        x = np.hstack([X,np.array([[0 if isnan(x[0]) else (sum([1. if i==j else 0 for i in x ])) for x in D] for j in range(self.d)]).T])
+        x = np.hstack([X,np.array([[0 if isnan(x[0]) else (sum([1. if i==j else 0 for i in x ])) for x in D] for j in xrange(self.d)]).T])
         n = X.shape[0]
         m = np.empty([n,self.size])
         V = np.empty([n,n*self.size])
-        for i in range(self.size):
+        for i in xrange(self.size):
             m_ ,V_ = self.m[i].predict_f_full_cov(np.hstack([x,np.zeros(shape=x.shape)]))
             m[:,i:i+1] = m_
             V[:,i*n:(i+1)*n] = np.squeeze(V_)
@@ -104,7 +109,7 @@ class GPcore:
         ns=X_i.shape[0]
         cv = sp.zeros([ns,ns])
 
-        for i in range(self.size):
+        for i in xrange(self.size):
             cv+=V[ns*i:ns*(i+1),:]
         cv= cv/self.size
         if self.size>1:
@@ -112,11 +117,11 @@ class GPcore:
         return [sp.mean(m,axis=0).reshape([1,ns]),cv]
 
     def infer_diag(self, X, D):
-        x = np.hstack([X,np.array([[0 if isnan(x[0]) else (sum([1. if i==j else 0 for i in x ])) for x in D] for j in range(self.d)]).T])
+        x = np.hstack([X,np.array([[0 if isnan(x[0]) else (sum([1. if i==j else 0 for i in x ])) for x in D] for j in xrange(self.d)]).T])
 
         m = np.empty([X.shape[0],self.size])
         V = np.empty([X.shape[0],self.size])
-        for i in range(self.size):
+        for i in xrange(self.size):
             m[:,i:i+1], V[:,i:i+1] = self.m[i].predict_f(np.hstack([x,np.zeros(shape=x.shape)]))
         if sp.amin(V)<=-0.:
             print( "negative/eq variance")
@@ -143,17 +148,17 @@ class GPcore:
         return [sp.mean(m,axis=0).reshape([1,ns]),(sp.mean(V,axis=0)+sp.var(m,axis=0)).reshape([1,ns])]
 
     def draw(self,X,D,n):
-        x = np.hstack([X,np.array([[0 if isnan(x[0]) else (sum([1. if i==j else 0 for i in x ])) for x in D] for j in range(self.d)]).T])
+        x = np.hstack([X,np.array([[0 if isnan(x[0]) else (sum([1. if i==j else 0 for i in x ])) for x in D] for j in xrange(self.d)]).T])
         s = np.empty([self.size*n,X.shape[0]])
-        for i in range(self.size):
+        for i in xrange(self.size):
             s[n*i:n*(i+1),:] = np.squeeze(self.m[i].predict_f_samples(np.hstack([x,np.zeros(shape=x.shape)]),n))
         return s
 
     def draw_post(self,X,D,n):
-        x = np.hstack([X,np.array([[0 if isnan(x[0]) else (sum([1. if i==j else 0 for i in x ])) for x in D] for j in range(self.d)]).T])
+        x = np.hstack([X,np.array([[0 if isnan(x[0]) else (sum([1. if i==j else 0 for i in x ])) for x in D] for j in xrange(self.d)]).T])
         s = np.empty([n,X.shape[0]])
         J = np.random.randint(0,self.size,n)
-        for i in range(n):
+        for i in xrange(n):
             try:
                 s[i,:]= np.squeeze(self.m[J[i]].predict_f_samples(np.hstack([x,np.zeros(shape=x.shape)]),1))
             except:
@@ -161,7 +166,7 @@ class GPcore:
                 print(K.shape)
                 print(K)
                 from scipy.linalg import cho_factor
-                for i in range(-12,0):
+                for i in xrange(-12,0):
                     try:
                         cho_factor(K+sp.eye(K.shape[0])*10**i)
                         print(i)
@@ -171,7 +176,7 @@ class GPcore:
         return s
 
     def llk(self):
-        return np.array([self.m[i].compute_log_likelihood() for i in range(self.size)])
+        return np.array([self.m[i].compute_log_likelihood() for i in xrange(self.size)])
 
     def infer_LCB(self,X, D, p):
         m,v = self.infer_diag(X, D)
@@ -196,11 +201,11 @@ class GPcore:
         m,v = self.infer_diag(X,D)
         if not fixI:
             I=np.infty
-            for i in range(len(self.Y)):
+            for i in xrange(len(self.Y)):
                 if sum(X[i,self.d:])==0:
                     I = min(I,self.Y[i,0])
         E = sp.empty([self.size,X.shape[0]])
-        for i in range(self.size):
+        for i in xrange(self.size):
             E[i,:] = EI(m[i,:],sp.sqrt(v[i,:]),I)
         return E
 
@@ -214,11 +219,11 @@ class GPcore:
         m,v = self.infer_diag(X,D)
         if not fixI:
             I=np.infty
-            for i in range(len(self.Y)):
+            for i in xrange(len(self.Y)):
                 if sum(X[i,self.d:])==0:
                     I = min(I,self.Y[i,0])
         E = sp.empty([self.size,X.shape[0]])
-        for i in range(self.size):
+        for i in xrange(self.size):
             E[i,:] = lEI(m[i,:],sp.sqrt(v[i,:]),I)
         return E
 
@@ -282,9 +287,9 @@ def buildKsym_d(kf,x,d):
         #x should be  column vector
         (l,_)=x.shape
         K=sp.matrix(sp.empty([l,l]))
-        for i in range(l):
+        for i in xrange(l):
             K[i,i]=kf(x[i,:],x[i,:],d1=d[i],d2=d[i])+10**-10
-            for j in range(i+1,l):
+            for j in xrange(i+1,l):
                 K[i,j]=kf(x[i,:],x[j,:],d1=d[i],d2=d[j])
                 
                 K[j,i]=K[i,j]
@@ -322,7 +327,7 @@ SQRT_1_2PI = 1/np.sqrt(2*np.pi)
 def EI(m, s, y ):
     N = len(m)
     R = sp.empty(N)
-    for i in range(N):
+    for i in xrange(N):
         S = (y-m[i])/s[i]
         c = stats.norm.cdf(S)
         p = stats.norm.pdf(S)
@@ -332,7 +337,7 @@ def EI(m, s, y ):
 def lEI(m, s, y ):
     N=len(m)
     R = EI(m,s,y)
-    for i in range(N):
+    for i in xrange(N):
         #TODO this switch to log puts a kink in the curve
         if (R[i]<=0.):
 
